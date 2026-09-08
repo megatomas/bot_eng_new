@@ -14,6 +14,10 @@ import asyncio
 import logging
 from datetime import datetime
 from typing import Optional
+from dotenv import load_dotenv
+
+# Загружаем переменные окружения из .env файла
+load_dotenv()
 
 from telegram import (
     Update,
