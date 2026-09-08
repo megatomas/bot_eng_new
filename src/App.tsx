@@ -1,600 +1,420 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { useLearningSystem } from './hooks/useLearningSystem';
-import { speechService } from './utils/speech';
-import { grammarRules } from './data/lessons';
-
-type Screen = 'welcome' | 'menu' | 'lesson' | 'grammar' | 'progress' | 'settings';
-
-interface Message {
-  id: string;
-  text: string;
-  sender: 'bot' | 'user';
-  timestamp: Date;
-  buttons?: { text: string; action: string }[];
-  highlight?: 'correct' | 'wrong' | null;
-}
+import { useState } from 'react'
 
 function App() {
-  const {
-    progress,
-    currentExercise,
-    isLessonActive,
-    lessonComplete,
-    lessons,
-    getCurrentLesson,
-    startLesson,
-    checkAnswer,
-    resetProgress,
-    skipExercise,
-    exerciseCount,
-    maxExercisesPerSession,
-  } = useLearningSystem();
+  const [activeTab, setActiveTab] = useState<'overview' | 'setup' | 'commands' | 'features'>('overview')
+  const [copiedCmd, setCopiedCmd] = useState('')
 
-  const [screen, setScreen] = useState<Screen>('welcome');
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [userInput, setUserInput] = useState('');
-  const [showTranslation, setShowTranslation] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [showGrammar, setShowGrammar] = useState(false);
-  const [selectedGrammar, setSelectedGrammar] = useState(0);
-  const [feedbackAnimation, setFeedbackAnimation] = useState<'correct' | 'wrong' | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text)
+    setCopiedCmd(id)
+    setTimeout(() => setCopiedCmd(''), 2000)
+  }
 
-  const goToMenu = useCallback(() => {
-    setScreen('menu');
-    setMessages([]);
-    setTimeout(() => {
-      setMessages([{
-        id: Date.now().toString(),
-        text: '📋 Главное меню\n\nВыбери, что хочешь делать:',
-        sender: 'bot',
-        timestamp: new Date(),
-        buttons: [
-          { text: '🚀 Начать урок', action: 'start' },
-          { text: '📊 Мой прогресс', action: 'progress' },
-          { text: '📖 Грамматика', action: 'grammar' },
-          { text: '🔊 Произношение слов', action: 'pronunciation' },
-          { text: '🔄 Сбросить прогресс', action: 'reset' },
-        ],
-      }]);
-    }, 100);
-  }, []);
-
-  useEffect(() => {
-    if (screen === 'welcome') {
-      setMessages([{
-        id: '1',
-        text: '👋 Привет! Я твой персональный репетитор английского языка!\n\n🧠 Я использую метод интервального повторения — это самый быстрый способ запомнить слова.\n\n🔊 Все слова озвучиваются — слушай и повторяй!\n\n🎯 Готов начать?',
-        sender: 'bot',
-        timestamp: new Date(),
-        buttons: [
-          { text: '🚀 Начать обучение', action: 'start' },
-          { text: '📊 Мой прогресс', action: 'progress' },
-          { text: '📖 Грамматика', action: 'grammar' },
-        ],
-      }]);
-    }
-  }, [screen]);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  useEffect(() => {
-    if (lessonComplete) {
-      const xpEarned = exerciseCount * 12;
-      setTimeout(() => {
-        setMessages(prev => [...prev, {
-          id: Date.now().toString(),
-          text: `🎉 Сессия завершена!\n\n✅ Правильных: ${progress.correctAnswers}\n❌ Ошибок: ${progress.wrongAnswers}\n⭐ Получено XP: +${xpEarned}\n🔥 Серия: ${progress.streak}\n\n💪 Продолжай в том же духе!`,
-          sender: 'bot',
-          timestamp: new Date(),
-          buttons: [
-            { text: '🔄 Ещё сессию', action: 'restart' },
-            { text: '📋 Меню', action: 'menu' },
-          ],
-        }]);
-      }, 500);
-    }
-  }, [lessonComplete]);
-
-  useEffect(() => {
-    if (isLessonActive && currentExercise) {
-      if (currentExercise.type === 'listen_and_choose') {
-        setTimeout(() => {
-          speakWord(currentExercise.word.english);
-        }, 600);
-      }
-      
-      const buttons = currentExercise.options 
-        ? currentExercise.options.map(opt => ({ text: opt, action: `answer:${opt}` }))
-        : [];
-      
-      setMessages(prev => [...prev, {
-        id: Date.now().toString() + Math.random(),
-        text: currentExercise.question,
-        sender: 'bot',
-        timestamp: new Date(),
-        buttons: buttons.length > 0 ? buttons : undefined,
-      }]);
-
-      // Focus input for text exercises
-      if (!currentExercise.options) {
-        setTimeout(() => inputRef.current?.focus(), 300);
-      }
-    }
-  }, [currentExercise, isLessonActive]);
-
-  const speakWord = async (word: string) => {
-    setIsSpeaking(true);
-    try {
-      await speechService.speakWord(word);
-    } catch (e) {
-      console.error('Speech error:', e);
-    }
-    setIsSpeaking(false);
-  };
-
-  const showFeedback = (correct: boolean) => {
-    setFeedbackAnimation(correct ? 'correct' : 'wrong');
-    setTimeout(() => setFeedbackAnimation(null), 1500);
-  };
-
-  const handleAction = (action: string) => {
-    switch (action) {
-      case 'start':
-        setScreen('lesson');
-        setMessages([]);
-        setTimeout(() => {
-          setMessages([{
-            id: Date.now().toString(),
-            text: `📚 Начинаем урок!\n\n📖 "${getCurrentLesson().title}"\n${getCurrentLesson().description}\n\n🎯 Каждое задание = 10 XP\n🔥 Серия правильных ответов даёт бонус!\n\nПоехали! 🚀`,
-            sender: 'bot',
-            timestamp: new Date(),
-          }]);
-          setTimeout(() => startLesson(), 1500);
-        }, 100);
-        break;
-      
-      case 'progress':
-        setScreen('progress');
-        break;
-      
-      case 'grammar':
-        setScreen('grammar');
-        break;
-      
-      case 'menu':
-        goToMenu();
-        break;
-      
-      case 'reset':
-        if (confirm('Точно сбросить весь прогресс?')) {
-          resetProgress();
-          setMessages(prev => [...prev, {
-            id: Date.now().toString(),
-            text: '🗑️ Прогресс сброшен. Начинаем заново!',
-            sender: 'bot',
-            timestamp: new Date(),
-            buttons: [{ text: '🚀 Начать заново', action: 'start' }],
-          }]);
-        }
-        break;
-      
-      case 'restart':
-        setMessages([]);
-        setTimeout(() => {
-          setMessages([{
-            id: Date.now().toString(),
-            text: `🔄 Новая сессия!\n\n📖 ${getCurrentLesson().title}`,
-            sender: 'bot',
-            timestamp: new Date(),
-          }]);
-          setTimeout(() => startLesson(), 1000);
-        }, 100);
-        break;
-      
-      case 'pronunciation':
-        setMessages([]);
-        setTimeout(() => {
-          const lesson = getCurrentLesson();
-          setMessages([{
-            id: Date.now().toString(),
-            text: '🔊 Режим произношения\n\nНажимай на слово, чтобы услышать произношение. Повторяй за мной!',
-            sender: 'bot',
-            timestamp: new Date(),
-            buttons: lesson.words.map(w => ({
-              text: `${w.english} — ${w.russian} 🔊`,
-              action: `speak:${w.english}|${w.russian}`
-            })),
-          }]);
-        }, 100);
-        break;
-      
-      default:
-        if (action.startsWith('answer:')) {
-          const answer = action.replace('answer:', '');
-          handleAnswer(answer);
-        } else if (action.startsWith('speak:')) {
-          const parts = action.replace('speak:', '').split('|');
-          speakWord(parts[0]);
-        }
-    }
-  };
-
-  const handleAnswer = (answer: string) => {
-    setMessages(prev => [...prev, {
-      id: Date.now().toString() + Math.random(),
-      text: answer,
-      sender: 'user',
-      timestamp: new Date(),
-    }]);
-    
-    const isCorrect = checkAnswer(answer);
-    showFeedback(isCorrect);
-    
-    if (isCorrect) {
-      setTimeout(() => {
-        setMessages(prev => [...prev, {
-          id: Date.now().toString() + Math.random(),
-          text: '✅ Правильно! 🎉',
-          sender: 'bot',
-          timestamp: new Date(),
-          highlight: 'correct',
-        }]);
-        if (currentExercise) {
-          speakWord(currentExercise.word.english);
-        }
-      }, 400);
-    } else {
-      setTimeout(() => {
-        const correct = currentExercise?.correctAnswer || 'N/A';
-        setMessages(prev => [...prev, {
-          id: Date.now().toString() + Math.random(),
-          text: `❌ Неверно.\n\nПравильный ответ: "${correct}"\n\n📝 Запомни!`,
-          sender: 'bot',
-          timestamp: new Date(),
-          highlight: 'wrong',
-        }]);
-        if (currentExercise) {
-          speakWord(currentExercise.word.english);
-        }
-      }, 400);
-    }
-    
-    setShowTranslation(false);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (userInput.trim()) {
-      handleAnswer(userInput.trim());
-      setUserInput('');
-    }
-  };
-
-  const accuracy = progress.correctAnswers + progress.wrongAnswers > 0 
-    ? Math.round(progress.correctAnswers / (progress.correctAnswers + progress.wrongAnswers) * 100) 
-    : 0;
-
-  const xpForNextLevel = (progress.level) * 100;
-  const xpProgress = ((progress.totalXP % 100) / 100) * 100;
-
-  const renderProgress = () => (
-    <div className="p-4 space-y-4">
-      {/* Stats Card */}
-      <div className="bg-gradient-to-br from-blue-500 via-blue-600 to-purple-700 rounded-2xl p-5 text-white shadow-lg">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold">📊 Прогресс</h2>
-          <div className="bg-white/20 px-3 py-1 rounded-full text-sm font-bold">
-            Lv. {progress.level}
-          </div>
-        </div>
-        
-        {/* XP Bar */}
-        <div className="mb-4">
-          <div className="flex justify-between text-xs mb-1 opacity-80">
-            <span>XP до следующего уровня</span>
-            <span>{progress.totalXP % 100}/{100}</span>
-          </div>
-          <div className="w-full bg-white/20 rounded-full h-2.5">
-            <div className="bg-yellow-400 h-2.5 rounded-full transition-all duration-500" style={{ width: `${xpProgress}%` }} />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-white/15 backdrop-blur rounded-xl p-3 text-center">
-            <div className="text-2xl font-bold">{progress.learnedWords.length}</div>
-            <div className="text-xs opacity-80 mt-1">Слов изучено</div>
-          </div>
-          <div className="bg-white/15 backdrop-blur rounded-xl p-3 text-center">
-            <div className="text-2xl font-bold">{progress.streak}🔥</div>
-            <div className="text-xs opacity-80 mt-1">Серия</div>
-          </div>
-          <div className="bg-white/15 backdrop-blur rounded-xl p-3 text-center">
-            <div className="text-2xl font-bold">{accuracy}%</div>
-            <div className="text-xs opacity-80 mt-1">Точность</div>
-          </div>
-          <div className="bg-white/15 backdrop-blur rounded-xl p-3 text-center">
-            <div className="text-2xl font-bold">{progress.totalXP}</div>
-            <div className="text-xs opacity-80 mt-1">Всего XP</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Detailed Stats */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-        <h3 className="font-bold text-base mb-3 flex items-center gap-2">
-          <span>📈</span> Детальная статистика
-        </h3>
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <span className="text-gray-600 text-sm">✅ Правильных ответов</span>
-            <span className="font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded">{progress.correctAnswers}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-gray-600 text-sm">❌ Ошибок</span>
-            <span className="font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded">{progress.wrongAnswers}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-gray-600 text-sm">🔄 Нужно повторить</span>
-            <span className="font-bold text-orange-500 bg-orange-50 px-2 py-0.5 rounded">{progress.wordsToRepeat.length}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Lessons */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-        <h3 className="font-bold text-base mb-3 flex items-center gap-2">
-          <span>📚</span> Уроки
-        </h3>
-        <div className="space-y-2">
-          {lessons.map((lesson, idx) => {
-            const isCurrent = idx === progress.currentLessonIndex % lessons.length;
-            return (
-              <div key={lesson.id} className={`flex items-center justify-between p-3 rounded-xl transition ${isCurrent ? 'bg-blue-50 border-2 border-blue-300' : 'bg-gray-50 hover:bg-gray-100'}`}>
-                <div>
-                  <div className="font-medium text-sm">{lesson.title}</div>
-                  <div className="text-xs text-gray-500 mt-0.5">Уровень {lesson.level} • {lesson.words.length} слов</div>
-                </div>
-                {isCurrent && (
-                  <span className="text-[10px] bg-blue-500 text-white px-2 py-0.5 rounded-full font-bold">СЕЙЧАС</span>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <button
-        onClick={goToMenu}
-        className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3.5 rounded-xl font-bold hover:from-blue-600 hover:to-blue-700 transition shadow-md active:scale-[0.98]"
-      >
-        ← Назад в меню
-      </button>
-    </div>
-  );
-
-  const renderGrammar = () => (
-    <div className="p-4 space-y-4">
-      <div className="bg-gradient-to-br from-green-500 via-green-600 to-teal-700 rounded-2xl p-5 text-white shadow-lg">
-        <h2 className="text-xl font-bold mb-1">📖 Грамматика</h2>
-        <p className="text-sm opacity-80">Изучай правила с примерами и произношением</p>
-      </div>
-
-      <div className="space-y-3">
-        {grammarRules.map((rule, idx) => (
-          <div
-            key={rule.id}
-            onClick={() => { setSelectedGrammar(idx); setShowGrammar(!showGrammar || selectedGrammar !== idx); }}
-            className={`bg-white rounded-2xl shadow-sm border transition cursor-pointer hover:shadow-md ${selectedGrammar === idx && showGrammar ? 'border-green-300 ring-2 ring-green-100' : 'border-gray-100'}`}
-          >
-            <div className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-bold text-base">{rule.title}</h3>
-                  <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full mt-1 inline-block">Уровень {rule.level}</span>
-                </div>
-                <span className={`text-gray-400 transition-transform ${showGrammar && selectedGrammar === idx ? 'rotate-180' : ''}`}>▼</span>
-              </div>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 text-white">
+      {/* Header */}
+      <header className="border-b border-white/10 backdrop-blur-xl bg-black/20">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-xl">
+              🤖
             </div>
-            
-            {showGrammar && selectedGrammar === idx && (
-              <div className="px-4 pb-4 border-t border-gray-100 pt-3">
-                <p className="text-gray-700 text-sm mb-3 bg-blue-50 p-3 rounded-xl">{rule.explanation}</p>
-                <div className="space-y-2">
-                  <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Примеры:</p>
-                  {rule.examples.map((ex, i) => (
-                    <div key={i} className="bg-gray-50 rounded-xl p-3 group hover:bg-gray-100 transition">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-blue-700 text-sm">{ex.english}</span>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); speakWord(ex.english); }}
-                          className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm hover:bg-blue-200 transition active:scale-90"
-                        >
-                          🔊
-                        </button>
-                      </div>
-                      <span className="text-xs text-gray-500 mt-1 block">{ex.russian}</span>
+            <div>
+              <h1 className="font-bold text-lg">English Learning Bot</h1>
+              <p className="text-xs text-blue-300">Telegram • Python • AI</p>
+            </div>
+          </div>
+          <a
+            href="https://core.telegram.org/bots"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-medium transition-colors"
+          >
+            Telegram Bot API →
+          </a>
+        </div>
+      </header>
+
+      {/* Hero */}
+      <section className="max-w-6xl mx-auto px-4 py-16 text-center">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-300 text-sm mb-6">
+          <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+          Python 3.10+ • Полностью автономный
+        </div>
+        <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white via-blue-200 to-cyan-200 bg-clip-text text-transparent">
+          Telegram-бот для изучения<br />английского языка
+        </h2>
+        <p className="text-lg text-slate-400 max-w-2xl mx-auto mb-8">
+          60+ слов, голосовое озвучивание, 5 типов упражнений, адаптивное обучение
+          с интервальным повторением и системой прогресса.
+        </p>
+        <div className="flex flex-wrap justify-center gap-4">
+          <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10">
+            <span>🔊</span><span className="text-sm">Голосовое TTS</span>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10">
+            <span>🧠</span><span className="text-sm">Адаптивное обучение</span>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10">
+            <span>📊</span><span className="text-sm">Система прогресса</span>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10">
+            <span>🔄</span><span className="text-sm">Интервальный повтор</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Bot Preview */}
+      <section className="max-w-6xl mx-auto px-4 pb-16">
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Phone mockup */}
+          <div className="relative">
+            <div className="bg-[#17212b] rounded-3xl overflow-hidden shadow-2xl shadow-blue-500/10 border border-white/10 max-w-sm mx-auto">
+              {/* Telegram header */}
+              <div className="bg-[#242f3d] px-4 py-3 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-sm">
+                  🤖
+                </div>
+                <div>
+                  <div className="font-medium text-sm">English Learning Bot</div>
+                  <div className="text-xs text-blue-400">online</div>
+                </div>
+              </div>
+              {/* Messages */}
+              <div className="p-4 space-y-3 bg-[#0e1621] min-h-[400px]">
+                <div className="bg-[#2b5278] rounded-xl rounded-tl-sm p-3 max-w-[85%]">
+                  <p className="text-sm">🎓 <b>Привет!</b> Я твой репетитор английского!</p>
+                  <p className="text-xs text-blue-300 mt-1">12:00</p>
+                </div>
+                <div className="bg-[#2b5278] rounded-xl rounded-tl-sm p-3 max-w-[85%]">
+                  <p className="text-sm">📖 <b>Новое слово!</b></p>
+                  <p className="text-sm mt-1">🇬🇧 <b>Hello</b> /həˈloʊ/</p>
+                  <p className="text-sm">🇷🇺 Привет</p>
+                </div>
+                <div className="flex justify-center">
+                  <div className="bg-[#2b5278]/50 rounded-full px-4 py-2 flex items-center gap-2">
+                    <span className="text-lg">🔊</span>
+                    <span className="text-xs text-blue-300">0:02</span>
+                  </div>
+                </div>
+                <div className="bg-[#2b5278] rounded-xl rounded-tl-sm p-3 max-w-[85%]">
+                  <p className="text-sm">🇬🇧 ➜ 🇷🇺 Выбери перевод:</p>
+                  <p className="text-sm font-bold mt-1">«Hello»</p>
+                </div>
+                <div className="space-y-1.5 pl-2">
+                  {['Привет ✅', 'До свидания', 'Спасибо', 'Пожалуйста'].map((opt, i) => (
+                    <div key={i} className={`px-3 py-2 rounded-lg text-sm ${i === 0 ? 'bg-green-500/20 border border-green-500/30 text-green-300' : 'bg-white/5 border border-white/10'}`}>
+                      {opt}
                     </div>
                   ))}
                 </div>
+                <div className="bg-[#2b5278] rounded-xl rounded-tl-sm p-3 max-w-[85%]">
+                  <p className="text-sm">✅ <b>Правильно!</b> 🎉</p>
+                  <p className="text-xs text-yellow-300 mt-1">+12 XP 🔥 Серия: 3</p>
+                </div>
               </div>
-            )}
+            </div>
           </div>
-        ))}
-      </div>
 
-      <button
-        onClick={goToMenu}
-        className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3.5 rounded-xl font-bold hover:from-green-600 hover:to-green-700 transition shadow-md active:scale-[0.98]"
-      >
-        ← Назад в меню
-      </button>
-    </div>
-  );
-
-  const renderChat = () => (
-    <div className="flex flex-col h-full relative">
-      {/* Feedback overlay */}
-      {feedbackAnimation && (
-        <div className={`absolute inset-0 z-50 pointer-events-none flex items-center justify-center ${feedbackAnimation === 'correct' ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
-          <div className={`text-6xl animate-bounce ${feedbackAnimation === 'correct' ? '' : 'animate-pulse'}`}>
-            {feedbackAnimation === 'correct' ? '✅' : '❌'}
-          </div>
-        </div>
-      )}
-
-      {/* Session Progress */}
-      {isLessonActive && (
-        <div className="px-4 py-2.5 bg-white/95 backdrop-blur border-b border-gray-100">
-          <div className="flex items-center justify-between text-xs mb-1.5">
-            <span className="text-gray-500 font-medium">Прогресс сессии</span>
-            <span className="font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">{exerciseCount}/{maxExercisesPerSession}</span>
-          </div>
-          <div className="w-full bg-gray-100 rounded-full h-1.5">
-            <div
-              className="bg-gradient-to-r from-blue-500 to-purple-500 h-1.5 rounded-full transition-all duration-700 ease-out"
-              style={{ width: `${(exerciseCount / maxExercisesPerSession) * 100}%` }}
-            />
+          {/* Features */}
+          <div className="space-y-4">
+            <h3 className="text-2xl font-bold mb-6">Возможности бота</h3>
+            {[
+              { icon: '🔊', title: 'Голосовое озвучивание', desc: 'Каждое слово и пример произносится через Google TTS. Можно замедлить для лучшего восприятия.' },
+              { icon: '🎯', title: '5 типов упражнений', desc: 'Перевод, выбор из вариантов, аудирование, набор текста, соединение пар — для полного усвоения.' },
+              { icon: '🧠', title: 'Адаптивное обучение', desc: 'Бот отслеживает ошибки и автоматически добавляет сложные слова в очередь повторения.' },
+              { icon: '📈', title: 'Система мотивации', desc: 'XP, уровни, серии правильных ответов — всё как в Duolingo, но прямо в Telegram.' },
+              { icon: '📝', title: 'Грамматика', desc: '6 грамматических правил с примерами и аудио-произношением каждого примера.' },
+              { icon: '💾', title: 'Сохранение прогресса', desc: 'SQLite база данных хранит прогресс каждого пользователя. Ничего не потеряется.' },
+            ].map((feature, i) => (
+              <div key={i} className="flex gap-4 p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                <div className="text-2xl flex-shrink-0">{feature.icon}</div>
+                <div>
+                  <h4 className="font-semibold">{feature.title}</h4>
+                  <p className="text-sm text-slate-400 mt-1">{feature.desc}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-      )}
+      </section>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-2.5 bg-[#e5ddd5]">
-        {messages.map((msg) => (
-          <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-slide-up`}>
-            <div
-              className={`max-w-[85%] rounded-2xl px-3.5 py-2 shadow-sm ${
-                msg.sender === 'user'
-                  ? 'bg-[#dcf8c6] rounded-br-md'
-                  : 'bg-white rounded-bl-md'
-              } ${msg.highlight === 'correct' ? 'ring-2 ring-green-300 bg-green-50' : ''} ${msg.highlight === 'wrong' ? 'ring-2 ring-red-300 bg-red-50' : ''}`}
+      {/* Tabs section */}
+      <section className="max-w-6xl mx-auto px-4 pb-16">
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+          {[
+            { id: 'overview' as const, label: '📋 Обзор', },
+            { id: 'setup' as const, label: '⚙️ Установка' },
+            { id: 'commands' as const, label: '⌨️ Команды' },
+            { id: 'features' as const, label: '🎮 Фичи' },
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+                activeTab === tab.id
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white/5 text-slate-400 hover:bg-white/10'
+              }`}
             >
-              <p className="text-[13px] leading-relaxed whitespace-pre-line">{msg.text}</p>
-              <div className="text-[10px] text-gray-400 text-right mt-0.5">
-                {msg.timestamp.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
-                {msg.sender === 'user' && ' ✓✓'}
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 md:p-8">
+          {activeTab === 'overview' && (
+            <div className="space-y-6">
+              <h3 className="text-2xl font-bold">📋 Структура проекта</h3>
+              <div className="bg-black/30 rounded-xl p-4 font-mono text-sm overflow-x-auto">
+                <pre>{`english-telegram-bot/
+├── bot.py              # Главный файл бота (обработчики, логика)
+├── lessons.py          # Данные: 60 слов, 6 уроков, грамматика
+├── speech.py           # Google TTS — генерация аудио
+├── progress.py         # SQLite — сохранение прогресса
+├── requirements.txt    # Зависимости Python
+└── README.md           # Документация`}</pre>
               </div>
               
-              {msg.buttons && msg.buttons.length > 0 && (
-                <div className="mt-2 space-y-1.5">
-                  {msg.buttons.map((btn, idx) => (
+              <h4 className="text-lg font-bold mt-8">📦 Зависимости</h4>
+              <div className="grid md:grid-cols-3 gap-4">
+                {[
+                  { name: 'python-telegram-bot', desc: 'Telegram Bot API', version: '21.6' },
+                  { name: 'gTTS', desc: 'Google Text-to-Speech', version: '2.5.4' },
+                  { name: 'aiosqlite', desc: 'Async SQLite', version: '0.20.0' },
+                ].map((dep, i) => (
+                  <div key={i} className="p-4 rounded-xl bg-black/20 border border-white/10">
+                    <div className="font-mono text-blue-300 font-bold">{dep.name}</div>
+                    <div className="text-xs text-slate-500 mt-1">v{dep.version}</div>
+                    <div className="text-sm text-slate-400 mt-2">{dep.desc}</div>
+                  </div>
+                ))}
+              </div>
+
+              <h4 className="text-lg font-bold mt-8">📊 Статистика контента</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { num: '60+', label: 'Слов', icon: '📝' },
+                  { num: '6', label: 'Уроков', icon: '📖' },
+                  { num: '5', label: 'Типов упражнений', icon: '🎯' },
+                  { num: '6', label: 'Правил грамматики', icon: '📝' },
+                ].map((stat, i) => (
+                  <div key={i} className="text-center p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20">
+                    <div className="text-2xl mb-1">{stat.icon}</div>
+                    <div className="text-2xl font-bold text-blue-300">{stat.num}</div>
+                    <div className="text-xs text-slate-400">{stat.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'setup' && (
+            <div className="space-y-6">
+              <h3 className="text-2xl font-bold">⚙️ Установка и запуск</h3>
+              
+              <div className="space-y-4">
+                {[
+                  {
+                    step: 1,
+                    title: 'Получите токен бота',
+                    desc: 'Откройте @BotFather в Telegram, отправьте /newbot и следуйте инструкциям.',
+                    code: null,
+                  },
+                  {
+                    step: 2,
+                    title: 'Установите зависимости',
+                    desc: 'Убедитесь, что у вас Python 3.10+',
+                    code: 'pip install -r requirements.txt',
+                  },
+                  {
+                    step: 3,
+                    title: 'Установите токен',
+                    desc: 'Замените YOUR_TOKEN на токен от @BotFather',
+                    code: 'export TELEGRAM_BOT_TOKEN="YOUR_TOKEN_HERE"',
+                  },
+                  {
+                    step: 4,
+                    title: 'Запустите бота',
+                    desc: 'Бот готов к работе!',
+                    code: 'python bot.py',
+                  },
+                ].map((step, i) => (
+                  <div key={i} className="flex gap-4">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center font-bold text-sm">
+                      {step.step}
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold">{step.title}</h4>
+                      <p className="text-sm text-slate-400 mt-1">{step.desc}</p>
+                      {step.code && (
+                        <div className="mt-2 relative group">
+                          <div className="bg-black/40 rounded-lg p-3 font-mono text-sm text-green-300 overflow-x-auto">
+                            <code>$ {step.code}</code>
+                          </div>
+                          <button
+                            onClick={() => copyToClipboard(step.code!, `step-${i}`)}
+                            className="absolute top-2 right-2 px-2 py-1 rounded text-xs bg-white/10 hover:bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            {copiedCmd === `step-${i}` ? '✓' : '📋'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-8 p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
+                <h4 className="font-semibold text-yellow-300">💡 Совет</h4>
+                <p className="text-sm text-slate-400 mt-1">
+                  Для постоянной работы используйте <code className="bg-black/30 px-1 rounded">systemd</code> или <code className="bg-black/30 px-1 rounded">pm2</code> для автозапуска.
+                  Бот также создаёт папку <code className="bg-black/30 px-1 rounded">bot_data/</code> для SQLite базы и <code className="bg-black/30 px-1 rounded">audio_cache/</code> для временных аудиофайлов.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'commands' && (
+            <div className="space-y-6">
+              <h3 className="text-2xl font-bold">⌨️ Команды бота</h3>
+              <div className="space-y-3">
+                {[
+                  { cmd: '/start', desc: 'Приветствие и главное меню с навигацией', icon: '🏠' },
+                  { cmd: '/learn', desc: 'Начать новый урок с голосовым озвучиванием слов', icon: '📖' },
+                  { cmd: '/practice', desc: 'Практика — 5 упражнений с разными типами', icon: '🏋️' },
+                  { cmd: '/vocab', desc: 'Просмотр изученных слов с транскрипцией', icon: '📚' },
+                  { cmd: '/grammar', desc: 'Грамматические правила с примерами и аудио', icon: '📝' },
+                  { cmd: '/stats', desc: 'Статистика: уровень, XP, точность, серии', icon: '📊' },
+                  { cmd: '/reset', desc: 'Сбросить весь прогресс (с подтверждением)', icon: '🔄' },
+                ].map((command, i) => (
+                  <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-black/20 border border-white/10 hover:bg-black/30 transition-colors">
+                    <span className="text-2xl">{command.icon}</span>
+                    <div className="flex-1">
+                      <code className="text-blue-300 font-mono font-bold">{command.cmd}</code>
+                      <p className="text-sm text-slate-400 mt-1">{command.desc}</p>
+                    </div>
                     <button
-                      key={idx}
-                      onClick={() => handleAction(btn.action)}
-                      className="w-full text-left bg-blue-50 hover:bg-blue-100 active:bg-blue-200 text-blue-700 px-3 py-2 rounded-lg text-[13px] font-medium transition-all active:scale-[0.97]"
+                      onClick={() => copyToClipboard(command.cmd, command.cmd)}
+                      className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs transition-colors"
                     >
-                      {btn.text}
+                      {copiedCmd === command.cmd ? '✓ Скопировано' : '📋 Копировать'}
                     </button>
-                  ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'features' && (
+            <div className="space-y-6">
+              <h3 className="text-2xl font-bold">🎮 Система обучения</h3>
+              
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-bold text-lg mb-3">🎯 5 типов упражнений</h4>
+                  <div className="space-y-2">
+                    {[
+                      { type: 'translate_to_english', name: 'Перевод на английский', desc: 'Пишешь английский по русскому слову' },
+                      { type: 'translate_to_russian', name: 'Выбор перевода', desc: 'Выбираешь из 4 вариантов' },
+                      { type: 'listen_and_choose', name: 'Аудирование', desc: 'Слушаешь аудио и выбираешь слово' },
+                      { type: 'type_word', name: 'Набор текста', desc: 'Пишешь слово с подсказкой' },
+                      { type: 'match_pairs', name: 'Соединение пар', desc: 'Соединяешь слово с переводом' },
+                    ].map((ex, i) => (
+                      <div key={i} className="p-3 rounded-lg bg-black/20 border border-white/10">
+                        <div className="font-medium text-sm">{ex.name}</div>
+                        <div className="text-xs text-slate-500">{ex.desc}</div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              )}
+
+                <div>
+                  <h4 className="font-bold text-lg mb-3">📈 Система XP</h4>
+                  <div className="space-y-3">
+                    <div className="p-4 rounded-xl bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20">
+                      <div className="text-sm text-slate-400">За правильный ответ</div>
+                      <div className="text-2xl font-bold text-blue-300">+10 XP</div>
+                    </div>
+                    <div className="p-4 rounded-xl bg-gradient-to-r from-orange-500/10 to-yellow-500/10 border border-orange-500/20">
+                      <div className="text-sm text-slate-400">Бонус за серию</div>
+                      <div className="text-2xl font-bold text-orange-300">+2 XP × streak</div>
+                      <div className="text-xs text-slate-500 mt-1">(макс. +20)</div>
+                    </div>
+                    <div className="p-4 rounded-xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20">
+                      <div className="text-sm text-slate-400">Новый уровень</div>
+                      <div className="text-2xl font-bold text-purple-300">каждые 100 XP</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <h4 className="font-bold text-lg mb-3">🔄 Интервальное повторение</h4>
+                <div className="p-4 rounded-xl bg-black/20 border border-white/10">
+                  <p className="text-sm text-slate-400">
+                    Когда пользователь отвечает неправильно, слово автоматически добавляется в список на повторение.
+                    Бот предложит повторить эти слова при следующем запуске <code className="bg-black/30 px-1 rounded">/practice</code>.
+                    Это обеспечивает эффективное запоминание по принципу интервального повторения.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <h4 className="font-bold text-lg mb-3">🔊 Голосовое озвучивание</h4>
+                <div className="p-4 rounded-xl bg-black/20 border border-white/10">
+                  <p className="text-sm text-slate-400">
+                    Используется <b>Google Text-to-Speech (gTTS)</b>. Каждое слово автоматически озвучивается при показе.
+                    Также доступны кнопки:
+                  </p>
+                  <div className="flex gap-3 mt-3">
+                    <span className="px-3 py-1.5 rounded-lg bg-blue-500/20 text-blue-300 text-sm">🔊 Нормальная скорость</span>
+                    <span className="px-3 py-1.5 rounded-lg bg-green-500/20 text-green-300 text-sm">🐢 Замедленная</span>
+                    <span className="px-3 py-1.5 rounded-lg bg-purple-500/20 text-purple-300 text-sm">💬 Пример</span>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Translation hint */}
-      {showTranslation && currentExercise && (
-        <div className="px-4 py-2 bg-yellow-50 border-t border-yellow-200 text-center">
-          <span className="text-xs text-yellow-800">💡 Ответ: <strong>{currentExercise.correctAnswer}</strong></span>
+          )}
         </div>
-      )}
+      </section>
 
-      {/* Action buttons for exercises */}
-      {isLessonActive && currentExercise && (
-        <div className="px-3 py-2 bg-white border-t border-gray-100 flex gap-2">
-          <button
-            onClick={() => currentExercise && speakWord(currentExercise.word.english)}
-            className={`flex-1 py-2 rounded-xl text-xs font-medium transition active:scale-95 ${isSpeaking ? 'bg-purple-100 text-purple-700 animate-pulse' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-          >
-            {isSpeaking ? '🔊 ...' : '🔊 Слушать'}
-          </button>
-          <button
-            onClick={() => setShowTranslation(!showTranslation)}
-            className="flex-1 py-2 rounded-xl text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition active:scale-95"
-          >
-            {showTranslation ? '🙈 Скрыть' : '💡 Ответ'}
-          </button>
-          <button
-            onClick={skipExercise}
-            className="flex-1 py-2 rounded-xl text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition active:scale-95"
-          >
-            ⏭️ Далее
-          </button>
+      {/* Lessons preview */}
+      <section className="max-w-6xl mx-auto px-4 pb-16">
+        <h3 className="text-2xl font-bold mb-6">📚 Уроки</h3>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[
+            { title: '🔤 Базовые слова', desc: 'Hello, Goodbye, Thank you...', level: 1, words: 10 },
+            { title: '👤 О себе', desc: 'I am, My name is, I like...', level: 1, words: 10 },
+            { title: '🏠 Повседневная жизнь', desc: 'Morning, Today, Always...', level: 2, words: 10 },
+            { title: '✈️ Путешествия', desc: 'Airport, Hotel, Ticket...', level: 2, words: 10 },
+            { title: '💬 Полезные фразы', desc: 'How are you?, Excuse me...', level: 2, words: 10 },
+            { title: '🧠 Продвинутый', desc: 'Achievement, Opportunity...', level: 3, words: 10 },
+          ].map((lesson, i) => (
+            <div key={i} className="p-5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-blue-500/30 transition-all group">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="font-bold">{lesson.title}</h4>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300">
+                  {'⭐'.repeat(lesson.level)}
+                </span>
+              </div>
+              <p className="text-sm text-slate-400 mb-3">{lesson.desc}</p>
+              <div className="flex items-center justify-between text-xs text-slate-500">
+                <span>📝 {lesson.words} слов</span>
+                <span className="group-hover:text-blue-400 transition-colors">Уровень {lesson.level} →</span>
+              </div>
+            </div>
+          ))}
         </div>
-      )}
+      </section>
 
-      {/* Text input for typing exercises */}
-      {isLessonActive && currentExercise && !currentExercise.options && (
-        <form onSubmit={handleSubmit} className="p-2.5 bg-white border-t border-gray-100 flex gap-2">
-          <input
-            ref={inputRef}
-            type="text"
-            value={userInput}
-            onChange={(e) => setUserInput(e.target.value)}
-            placeholder="Введи ответ на английском..."
-            className="flex-1 border border-gray-200 rounded-full px-4 py-2 text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50 transition"
-            autoFocus
-            autoComplete="off"
-            autoCorrect="off"
-            spellCheck={false}
-          />
-          <button
-            type="submit"
-            disabled={!userInput.trim()}
-            className="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-blue-600 transition active:scale-90 disabled:opacity-50 disabled:active:scale-100 shadow-md"
-          >
-            ➤
-          </button>
-        </form>
-      )}
+      {/* Footer */}
+      <footer className="border-t border-white/10 py-8 text-center text-sm text-slate-500">
+        <p>English Learning Telegram Bot • Python 3.10+ • python-telegram-bot + gTTS</p>
+        <p className="mt-2">Создано для быстрого и эффективного изучения английского 🇬🇧</p>
+      </footer>
     </div>
-  );
-
-  return (
-    <div className="h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
-      <div className="w-full max-w-md h-full max-h-[100dvh] md:max-h-[750px] md:rounded-3xl md:shadow-2xl bg-white flex flex-col overflow-hidden relative border border-gray-200 md:border-0">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-[#2AABEE] to-[#229ED9] text-white px-4 py-3 flex items-center gap-3 shadow-md z-10 shrink-0">
-          <button
-            onClick={goToMenu}
-            className="text-white/80 hover:text-white transition text-lg"
-          >
-            ←
-          </button>
-          <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-xl backdrop-blur-sm">
-            🤖
-          </div>
-          <div className="flex-1 min-w-0">
-            <h1 className="font-bold text-sm truncate">English Learning Bot</h1>
-            <p className="text-[11px] opacity-80 truncate">
-              {isLessonActive ? '🟢 Урок идёт...' : screen === 'progress' ? '📊 Статистика' : screen === 'grammar' ? '📖 Грамматика' : '⚡ online'}
-            </p>
-          </div>
-          <div className="flex items-center gap-1.5 shrink-0">
-            <div className="text-[10px] bg-white/20 backdrop-blur px-2 py-0.5 rounded-full font-bold">
-              Lv.{progress.level}
-            </div>
-            <div className="text-[10px] bg-yellow-400/30 backdrop-blur px-2 py-0.5 rounded-full font-bold">
-              ⭐{progress.totalXP}
-            </div>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden">
-          {screen === 'progress' && renderProgress()}
-          {screen === 'grammar' && renderGrammar()}
-          {(screen === 'welcome' || screen === 'menu' || screen === 'lesson') && renderChat()}
-        </div>
-      </div>
-    </div>
-  );
+  )
 }
 
-export default App;
+export default App
