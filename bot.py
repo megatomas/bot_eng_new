@@ -525,7 +525,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         word_id = data.replace("listen_word_", "")
         word = get_word_by_id(word_id)
         if word:
-            await context.bot.send_chat_action(chat_id=query.message.chat_id, action=ChatAction.RECORD_AUDIO)
+            await context.bot.send_chat_action(chat_id=query.message.chat_id, action=ChatAction.UPLOAD_VOICE)
             audio_path = generate_word_audio(word.english)
             if audio_path:
                 with open(audio_path, "rb") as audio:
@@ -536,7 +536,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         word_id = data.replace("listen_slow_", "")
         word = get_word_by_id(word_id)
         if word:
-            await context.bot.send_chat_action(chat_id=query.message.chat_id, action=ChatAction.RECORD_AUDIO)
+            await context.bot.send_chat_action(chat_id=query.message.chat_id, action=ChatAction.UPLOAD_VOICE)
             audio_path = generate_slow_audio(word.english)
             if audio_path:
                 with open(audio_path, "rb") as audio:
@@ -547,7 +547,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         word_id = data.replace("listen_example_", "")
         word = get_word_by_id(word_id)
         if word:
-            await context.bot.send_chat_action(chat_id=query.message.chat_id, action=ChatAction.RECORD_AUDIO)
+            await context.bot.send_chat_action(chat_id=query.message.chat_id, action=ChatAction.UPLOAD_VOICE)
             audio_path = generate_example_audio(word.example)
             if audio_path:
                 with open(audio_path, "rb") as audio:
@@ -607,7 +607,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif data.startswith("grammar_audio_"):
         idx = int(data.split("_")[2])
         rule = GRAMMAR_RULES[idx]
-        await context.bot.send_chat_action(chat_id=query.message.chat_id, action=ChatAction.RECORD_AUDIO)
+        await context.bot.send_chat_action(chat_id=query.message.chat_id, action=ChatAction.UPLOAD_VOICE)
         
         for ex in rule.examples:
             audio_path = generate_speech(ex["english"], lang="en")
@@ -711,7 +711,7 @@ async def send_word_introduction(query, context, word: Word, lesson: Lesson):
         await query.message.reply_text(text, parse_mode=ParseMode.HTML, reply_markup=reply_markup)
     
     # Автоматически отправить аудио
-    await context.bot.send_chat_action(chat_id=query.message.chat_id, action=ChatAction.RECORD_AUDIO)
+    await context.bot.send_chat_action(chat_id=query.message.chat_id, action=ChatAction.UPLOAD_VOICE)
     audio_path = generate_word_audio(word.english)
     if audio_path:
         try:
@@ -783,7 +783,7 @@ async def send_exercise_message(query, context, exercise: dict, word: Word):
     
     # Для аудирования — автоматически отправить аудио
     if exercise["type"] == "listen_and_choose":
-        await context.bot.send_chat_action(chat_id=query.message.chat_id, action=ChatAction.RECORD_AUDIO)
+        await context.bot.send_chat_action(chat_id=query.message.chat_id, action=ChatAction.UPLOAD_VOICE)
         audio_path = generate_word_audio(word.english)
         if audio_path:
             try:
@@ -885,7 +885,7 @@ async def process_answer_text(update: Update, context: ContextTypes.DEFAULT_TYPE
     await update.message.reply_text(text, parse_mode=ParseMode.HTML, reply_markup=reply_markup)
     
     # Отправить аудио правильного ответа
-    await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.RECORD_AUDIO)
+    await context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.UPLOAD_VOICE)
     audio_path = generate_word_audio(session.current_word.english)
     if audio_path:
         try:
@@ -1044,6 +1044,12 @@ def main():
     
     app.add_handler(CallbackQueryHandler(handle_callback))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
+    
+    # Обработчик ошибок
+    async def error_handler(update, context):
+        logger.error(f"Exception while handling an update: {context.error}")
+    
+    app.add_error_handler(error_handler)
     
     print("✅ Бот запущен! Ожидание сообщений...")
     app.run_polling(drop_pending_updates=True)
