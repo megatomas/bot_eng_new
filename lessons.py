@@ -171,8 +171,14 @@ LESSON_6 = Lesson(
     ]
 )
 
-# Все уроки
-ALL_LESSONS = [LESSON_1, LESSON_2, LESSON_3, LESSON_4, LESSON_5, LESSON_6]
+# Импортируем уроки из дополнительных файлов
+try:
+    from lessons_basic import ALL_LESSONS_A1_A2
+    from lessons_advanced import ALL_LESSONS_B1_B2
+    ALL_LESSONS = [LESSON_1, LESSON_2, LESSON_3, LESSON_4, LESSON_5, LESSON_6] + ALL_LESSONS_A1_A2 + ALL_LESSONS_B1_B2
+except ImportError:
+    # Если дополнительные файлы не найдены, используем только базовые уроки
+    ALL_LESSONS = [LESSON_1, LESSON_2, LESSON_3, LESSON_4, LESSON_5, LESSON_6]
 
 # Все слова (плоский список)
 ALL_WORDS = [word for lesson in ALL_LESSONS for word in lesson.words]
@@ -245,6 +251,160 @@ GRAMMAR_RULES = [
             {"english": "I can swim.", "russian": "Я умею плавать."},
             {"english": "You must study hard.", "russian": "Ты должен усердно учиться."},
             {"english": "You should rest.", "russian": "Тебе стоит отдохнуть."},
+        ]
+    ),
+    GrammarRule(
+        id="g7",
+        title="Present Perfect",
+        level=3,
+        explanation="Действие произошло в прошлом, но результат важен сейчас.\n\nФормула: have/has + V3 (третья форма глагола)\n\nИспользуем с: already, just, never, ever, yet",
+        examples=[
+            {"english": "I have finished my work.", "russian": "Я закончил работу."},
+            {"english": "She has never been to Paris.", "russian": "Она никогда не была в Париже."},
+            {"english": "Have you ever seen a lion?", "russian": "Ты когда-нибудь видел льва?"},
+        ]
+    ),
+    GrammarRule(
+        id="g8",
+        title="Past Continuous",
+        level=3,
+        explanation="Действие происходило в определённый момент в прошлом.\n\nФормула: was/were + глагол + ing",
+        examples=[
+            {"english": "I was reading at 8 PM.", "russian": "Я читал в 8 вечера."},
+            {"english": "They were playing football.", "russian": "Они играли в футбол."},
+            {"english": "What were you doing?", "russian": "Что ты делал?"},
+        ]
+    ),
+    GrammarRule(
+        id="g9",
+        title="Сравнительные степени",
+        level=2,
+        explanation="Сравниваем предметы и людей.\n\n• Короткие прилагательные: + er (tall → taller)\n• Длинные: more (beautiful → more beautiful)\n• Неправильные: good → better, bad → worse",
+        examples=[
+            {"english": "She is taller than me.", "russian": "Она выше меня."},
+            {"english": "This book is more interesting.", "russian": "Эта книга интереснее."},
+            {"english": "He is the best student.", "russian": "Он лучший студент."},
+        ]
+    ),
+    GrammarRule(
+        id="g10",
+        title="Артикли (a/an/the)",
+        level=1,
+        explanation="• a/an — неопределённый (один из многих)\n  • a — перед согласным звуком\n  • an — перед гласным звуком\n• the — определённый (конкретный предмет)",
+        examples=[
+            {"english": "I have a cat.", "russian": "У меня есть кошка."},
+            {"english": "She is an engineer.", "russian": "Она инженер."},
+            {"english": "The book is on the table.", "russian": "Книга на столе (конкретная)."},
+        ]
+    ),
+    GrammarRule(
+        id="g11",
+        title="Множественное число",
+        level=1,
+        explanation="Большинство слов: + s (book → books)\nОкончания -s, -sh, -ch, -x: + es (bus → buses)\nОкончание -y после согласной: -y → -ies (city → cities)\nНеправильные: man → men, child → children",
+        examples=[
+            {"english": "Two dogs, three cats.", "russian": "Две собаки, три кошки."},
+            {"english": "Five buses, ten boxes.", "russian": "Пять автобусов, десять коробок."},
+            {"english": "Many children, some men.", "russian": "Много детей, несколько мужчин."},
+        ]
+    ),
+    GrammarRule(
+        id="g12",
+        title="Отрицания",
+        level=1,
+        explanation="• am/is/are + not\n• do/does + not + глагол (Present Simple)\n• did + not + глагол (Past Simple)\n• will + not (won't) (Future Simple)",
+        examples=[
+            {"english": "I am not tired.", "russian": "Я не устал."},
+            {"english": "She doesn't like coffee.", "russian": "Она не любит кофе."},
+            {"english": "They didn't come.", "russian": "Они не пришли."},
+        ]
+    ),
+    GrammarRule(
+        id="g13",
+        title="Вопросы",
+        level=1,
+        explanation="Общий вопрос: Do/Does/Did + subject + verb?\nС вопросом к глаголу to be: Am/Is/Are + subject?\nСпециальные вопросы: What, Where, When, Why, How + вспом. глагол",
+        examples=[
+            {"english": "Do you like music?", "russian": "Ты любишь музыку?"},
+            {"english": "Where do you live?", "russian": "Где ты живёшь?"},
+            {"english": "What did you do?", "russian": "Что ты сделал?"},
+        ]
+    ),
+    GrammarRule(
+        id="g14",
+        title="Предлоги времени (in/on/at)",
+        level=2,
+        explanation="• at — точное время (at 5 o'clock, at night)\n• on — дни и даты (on Monday, on May 5th)\n• in — месяцы, годы, части дня (in May, in 2024, in the morning)",
+        examples=[
+            {"english": "I wake up at 7.", "russian": "Я просыпаюсь в 7."},
+            {"english": "We meet on Fridays.", "russian": "Мы встречаемся по пятницам."},
+            {"english": "She was born in 1990.", "russian": "Она родилась в 1990."},
+        ]
+    ),
+    GrammarRule(
+        id="g15",
+        title="Предлоги места (in/on/at)",
+        level=2,
+        explanation="• at — конкретное место (at the door, at school)\n• on — поверхность (on the table, on the wall)\n• in — внутри (in the room, in the box)",
+        examples=[
+            {"english": "I'm at home.", "russian": "Я дома."},
+            {"english": "The book is on the table.", "russian": "Книга на столе."},
+            {"english": "She is in the kitchen.", "russian": "Она на кухне."},
+        ]
+    ),
+    GrammarRule(
+        id="g16",
+        title="Conditionals (Zero & First)",
+        level=3,
+        explanation="Zero: If + Present Simple, Present Simple (факты)\nFirst: If + Present Simple, will + verb (реальное будущее)\n\nПеревод: Если..., то...",
+        examples=[
+            {"english": "If you heat water, it boils.", "russian": "Если нагреть воду, она кипит."},
+            {"english": "If it rains, I will stay home.", "russian": "Если пойдёт дождь, я останусь дома."},
+            {"english": "If you study, you will pass.", "russian": "Если будешь учиться, сдашь."},
+        ]
+    ),
+    GrammarRule(
+        id="g17",
+        title="Passive Voice",
+        level=4,
+        explanation="Страдательный залог — действие направлено на предмет.\n\nФормула: be + V3\n\nPresent: is/are + V3\nPast: was/were + V3\nFuture: will be + V3",
+        examples=[
+            {"english": "The book was written by Tolstoy.", "russian": "Книга написана Толстым."},
+            {"english": "English is spoken worldwide.", "russian": "На английском говорят по всему миру."},
+            {"english": "The work will be done tomorrow.", "russian": "Работа будет сделана завтра."},
+        ]
+    ),
+    GrammarRule(
+        id="g18",
+        title="Reported Speech",
+        level=4,
+        explanation="Косвенная речь — передаём чужие слова.\n\n• Present Simple → Past Simple\n• will → would\n• can → could\n• today → that day",
+        examples=[
+            {"english": "He said he was tired.", "russian": "Он сказал, что устал."},
+            {"english": "She told me she would come.", "russian": "Она сказала, что придёт."},
+            {"english": "They said they could help.", "russian": "Они сказали, что могут помочь."},
+        ]
+    ),
+    GrammarRule(
+        id="g19",
+        title="Герундий vs Инфинитив",
+        level=3,
+        explanation="После некоторых глаголов используем -ing (герундий):\n• enjoy, avoid, finish, mind, suggest\n\nПосле других — to + глагол (инфинитив):\n• want, need, decide, hope, plan",
+        examples=[
+            {"english": "I enjoy reading.", "russian": "Мне нравится читать."},
+            {"english": "She wants to travel.", "russian": "Она хочет путешествовать."},
+            {"english": "He decided to stay.", "russian": "Он решил остаться."},
+        ]
+    ),
+    GrammarRule(
+        id="g20",
+        title="Used to / Would",
+        level=4,
+        explanation="Используем для привычек в прошлом.\n\n• used to + глагол — раньше делал (но больше нет)\n• would + глагол — часто делал в прошлом",
+        examples=[
+            {"english": "I used to smoke.", "russian": "Я раньше курил."},
+            {"english": "She used to live in Paris.", "russian": "Она раньше жила в Париже."},
+            {"english": "We would play in the park.", "russian": "Мы играли в парке (регулярно)."},
         ]
     ),
 ]
