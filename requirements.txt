@@ -1,3 +1,7 @@
+# ============================================================
+# English Learning Telegram Bot - Dependencies
+# ============================================================
+
 # Core
 aiogram==3.13.1
 sqlalchemy==2.0.36
@@ -6,18 +10,18 @@ asyncpg==0.30.0
 pydantic==2.9.2
 pydantic-settings==2.6.1
 
-# AI (бесплатные провайдеры)
+# AI - БЕСПЛАТНЫЕ провайдеры
 aiohttp==3.10.10  # Для Groq/Gemini API
 
-# Speech — БЕСПЛАТНЫЕ решения
-edge-tts==6.1.12  # Microsoft Edge TTS (лучший бесплатный)
+# Speech - БЕСПЛАТНЫЕ решения
+edge-tts==6.1.12  # Microsoft Edge TTS (ЛУЧШИЙ бесплатный)
 gtts==2.5.4       # Google TTS (альтернатива)
-openai-whisper==20240930  # OpenAI Whisper STT (локальный)
+openai-whisper==20240930  # OpenAI Whisper STT (локальный, бесплатный)
 
 # Utils
 python-dotenv==1.0.1
 aiofiles==24.1.0
 
-# Dev
+# Dev (опционально)
 pytest==8.3.3
 pytest-asyncio==0.24.0

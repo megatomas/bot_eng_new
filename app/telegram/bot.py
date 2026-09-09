@@ -16,11 +16,11 @@ def create_dispatcher() -> Dispatcher:
     """Create and configure the dispatcher."""
     dp = Dispatcher(storage=MemoryStorage())
     
-    # Register routers
-    dp.include_router(start.router)
-    dp.include_router(learn.router)
-    dp.include_router(review.router)
-    dp.include_router(dialogue.router)
-    dp.include_router(progress.router)
+    # Register all routers (handlers)
+    dp.include_router(start.router)      # /start, /help, menu
+    dp.include_router(learn.router)      # Учить новые слова
+    dp.include_router(review.router)     # Повторение (интервальное)
+    dp.include_router(dialogue.router)   # AI-собеседник
+    dp.include_router(progress.router)   # Статистика
     
     return dp

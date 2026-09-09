@@ -1,3 +1,3 @@
-from app.telegram.handlers import start, learn
+from app.telegram.handlers import start, learn, review, dialogue, progress
 
-__all__ = ["start", "learn"]
+__all__ = ["start", "learn", "review", "dialogue", "progress"]

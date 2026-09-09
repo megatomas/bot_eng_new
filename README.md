@@ -1,102 +1,93 @@
 # 🇬🇧 English Learning Telegram Bot
 
-Полностью автономный Telegram-бот для максимально быстрого изучения разговорного английского языка.
+Полностью автономный Telegram-бот для изучения английского языка с **бесплатными** AI, TTS и STT.
 
-## 🎯 Главная цель
+## 🎯 Возможности
 
-Бот не просто помогает запоминать слова — он формирует **автоматический навык** понимания и речи:
+- ✅ **AI-собеседник** (Groq Llama 3.3 — бесплатно)
+- ✅ **Голосовое озвучивание** (edge-tts — бесплатно)
+- ✅ **Распознавание речи** (Whisper — бесплатно)
+- ✅ **Интервальное повторение** (SM-2 алгоритм)
+- ✅ **4 навыка**: Recognition, Recall, Listening, Production
+- ✅ **Адаптивное обучение** под уровень пользователя
+- ✅ **Статистика** и отслеживание прогресса
 
-- ✅ Понимать обычную разговорную речь
-- ✅ Строить предложения без перевода в голове
-- ✅ Поддерживать бытовой диалог
-- ✅ Использовать выученную лексику автоматически
+## 🆓 Полностью бесплатные решения
 
-## 🏗️ Архитектура
+| Компонент | Решение | Стоимость | Лимиты |
+|-----------|---------|-----------|--------|
+| **AI** | Groq (Llama 3.3) | $0 | 14400 запросов/день |
+| **TTS** | edge-tts (Microsoft Edge) | $0 | Безлимитно |
+| **STT** | Whisper (OpenAI) | $0 | Локально, безлимитно |
+| **Database** | PostgreSQL | $0 | Локально |
 
-```
-app/
-├── main.py                 # Точка входа
-├── config.py               # Конфигурация (env vars)
-├── database/               # SQLAlchemy модели
-│   ├── base.py
-│   └── models/
-│       ├── user.py         # Пользователи
-│       ├── word.py         # Словарь (5000-10000 слов)
-│       ├── user_word.py    # Прогресс по словам
-│       └── review.py       # История повторений и ошибок
-├── repositories/           # Работа с БД
-├── services/               # Бизнес-логика
-│   ├── learning_service.py # Оркестрация обучения
-│   └── spaced_repetition.py # SM-2 алгоритм
-├── ai/                     # LLM интеграция (OpenAI)
-├── speech/                 # TTS/STT провайдеры
-├── telegram/               # Telegram handlers
-│   ├── bot.py
-│   ├── handlers/
-│   └── keyboards/
-└── utils/
-```
+**Итого: $0/месяц** 🎉
 
 ## 🚀 Быстрый старт
 
-### 1. Установка Python 3.12+
-
-```bash
-# Проверить версию
-python --version
-
-# Если нужно установить, скачать с python.org
-```
-
-### 2. Клонировать проект
+### 1. Клонировать проект
 
 ```bash
 git clone <your-repo-url>
 cd english-learning-bot
 ```
 
-### 3. Создать виртуальное окружение
+### 2. Создать виртуальное окружение
 
 ```bash
+# Windows
 python -m venv venv
-
-# Windows:
 venv\Scripts\activate
 
-# Linux/Mac:
+# Linux/Mac
+python3 -m venv venv
 source venv/bin/activate
 ```
 
-### 4. Установить зависимости
+### 3. Установить зависимости
 
 ```bash
 pip install -r requirements.txt
 ```
 
+### 4. Получить Groq API ключ (БЕСПЛАТНО)
+
+1. Зайди на https://console.groq.com/
+2. Зарегистрируйся (можно через Google)
+3. Перейди в "API Keys"
+4. Нажми "Create API Key"
+5. Скопируй ключ (начинается с `gsk_...`)
+
 ### 5. Создать Telegram бота
 
-1. Открыть Telegram → найти @BotFather
-2. Отправить `/newbot`
-3. Придумать имя и username
-4. Скопировать **BOT_TOKEN**
+1. Открой Telegram → найди @BotFather
+2. Отправь `/newbot`
+3. Придумай имя и username
+4. Скопируй **BOT_TOKEN**
 
-### 6. Создать файл .env
+### 6. Настроить .env
 
 ```bash
 cp .env.example .env
 ```
 
-Отредактировать `.env`:
+Отредактируй `.env`:
 
 ```env
-BOT_TOKEN=ваш_токен_от_BotFather
+# Обязательно
+BOT_TOKEN=твой_токен_от_BotFather
+GROQ_API_KEY=gsk_твой_groq_ключ
+
+# Остальное можно оставить по умолчанию
 DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/english_bot
-OPENAI_API_KEY=sk-...  # опционально
+LLM_PROVIDER=groq
+TTS_PROVIDER=edge
+STT_PROVIDER=whisper
 ```
 
 ### 7. Запустить PostgreSQL
 
-**Вариант A: Docker (рекомендуется)**
+**Вариант A: Docker (проще)**
 
 ```bash
 docker-compose up -d db
@@ -104,46 +95,148 @@ docker-compose up -d db
 
 **Вариант B: Локально**
 
-Установить PostgreSQL и создать базу:
-
-```sql
-CREATE DATABASE english_bot;
+```bash
+# Установить PostgreSQL
+# Создать базу данных:
+createdb english_bot
 ```
 
-### 8. Импортировать словарь
+### 8. Инициализировать базу данных
 
 ```bash
-python -m scripts.import_words data/words_sample.json
+# Создать таблицы
+python -c "import asyncio; from app.database.base import init_db; asyncio.run(init_db())"
 ```
 
-Для полной базы (5000+ слов) подготовить JSON/CSV файл.
+### 9. Сгенерировать словарь (опционально)
 
-### 9. Запустить бота
+```bash
+# Сгенерировать 500 слов уровня A1
+python -m scripts.generate_dictionary --level A1 --count 500 --output data/words_a1.json
+
+# Импортировать в базу
+python -m scripts.import_words data/words_a1.json
+```
+
+### 10. Запустить бота
 
 ```bash
 python -m app.main
 ```
 
-### 10. Проверить работу
+### 11. Проверить работу
 
-Открыть бота в Telegram → `/start`
+Открой бота в Telegram → `/start`
 
-## 🐳 Запуск через Docker
+## 📱 Команды бота
 
-```bash
-# Собрать и запустить всё
-docker-compose up -d
+| Команда | Описание |
+|---------|----------|
+| `/start` | Начальное меню |
+| `/learn` | Учить новые слова |
+| `/review` | Повторить изученное |
+| `/dialogue` | Поговорить с AI |
+| `/progress` | Статистика |
+| `/help` | Справка |
 
-# Посмотреть логи
-docker-compose logs -f bot
+## 🏗️ Архитектура
 
-# Остановить
-docker-compose down
+```
+app/
+├── main.py                    # Точка входа
+├── config.py                  # Конфигурация
+├── database/                  # SQLAlchemy модели
+│   ├── base.py
+│   └── models/
+│       ├── user.py           # Пользователи
+│       ├── word.py           # Словарь
+│       ├── user_word.py      # Прогресс
+│       └── review.py         # История
+├── repositories/              # Работа с БД
+├── services/                  # Бизнес-логика
+│   ├── learning_service.py   # Обучение
+│   └── spaced_repetition.py  # SM-2 алгоритм
+├── ai/                        # AI провайдеры
+│   └── providers.py          # Groq, Gemini
+├── speech/                    # Speech провайдеры
+│   └── providers.py          # edge-tts, Whisper
+└── telegram/                  # Telegram handlers
+    ├── bot.py
+    ├── handlers/
+    │   ├── start.py          # /start, /help
+    │   ├── learn.py          # Учить слова
+    │   ├── review.py         # Повторение
+    │   ├── dialogue.py       # AI-собеседник
+    │   └── progress.py       # Статистика
+    └── keyboards/
+        └── main.py           # Inline кнопки
 ```
 
-## 📚 Структура словаря
+## 🧠 Алгоритм обучения
 
-Каждое слово имеет полную лингвистическую информацию:
+### Интервальное повторение (SM-2)
+
+- ✅ Правильный ответ → интервал увеличивается
+- ❌ Ошибка → интервал сбрасывается
+- ⏱️ Время ответа влияет на качество
+
+### 4 навыка для каждого слова
+
+1. **Recognition** — English → Russian (выбор)
+2. **Recall** — Russian → English (ввод)
+3. **Listening** — Audio → meaning
+4. **Production** — свободное построение предложений
+
+## 🎤 Speech (TTS/STT)
+
+### TTS: edge-tts (Microsoft Edge)
+
+```python
+from app.speech import EdgeTTSProvider
+
+tts = EdgeTTSProvider(voice="en-US-JennyNeural")
+audio = await tts.synthesize("Hello, how are you?")
+```
+
+**Доступные голоса:**
+- `en-US-JennyNeural` — женский, американский
+- `en-US-GuyNeural` — мужской, американский
+- `en-GB-SoniaNeural` — женский, британский
+
+### STT: Whisper (OpenAI)
+
+```python
+from app.speech import WhisperProvider
+
+stt = WhisperProvider(model_name="base")
+text = await stt.transcribe(audio_bytes, lang="en")
+```
+
+**Модели:**
+- `tiny` — 39 MB, быстрый
+- `base` — 74 MB, баланс (рекомендуется)
+- `small` — 244 MB, точный
+
+## 🤖 AI-собеседник
+
+### Groq (Llama 3.3)
+
+```python
+from app.ai import GroqProvider
+
+llm = GroqProvider(api_key="gsk_...")
+response = await llm.converse(
+    messages=[{"role": "user", "content": "Hi!"}],
+    user_level="A2",
+)
+```
+
+**Лимиты:**
+- 30 запросов/мин
+- 14400 запросов/день
+- 100,000 токенов/мин
+
+## 📊 Структура слова
 
 ```json
 {
@@ -157,7 +250,7 @@ docker-compose down
     {"en": "I run every morning.", "ru": "Я бегаю каждое утро."}
   ],
   "common_phrases": ["run out of", "run late"],
-  "collocations": ["run a business", "run a marathon"],
+  "collocations": ["run a business"],
   "synonyms": ["sprint", "jog"],
   "forms": ["run", "ran", "running"],
   "tags": ["daily", "movement"],
@@ -165,78 +258,18 @@ docker-compose down
 }
 ```
 
-## 🧠 Алгоритм обучения
+## 🐳 Docker
 
-### Интервальное повторение (SM-2)
+```bash
+# Запустить всё (бот + БД)
+docker-compose up -d
 
-Система автоматически определяет, когда повторять слово:
+# Логи
+docker-compose logs -f bot
 
-- ✅ Правильный ответ → интервал увеличивается
-- ❌ Ошибка → интервал сбрасывается
-- ⏱️ Время ответа влияет на качество
-
-### 4 навыка для каждого слова
-
-1. **Recognition** — English → Russian (выбор)
-2. **Recall** — Russian → English (ввод)
-3. **Listening** — Audio → meaning
-4. **Production** — свободное построение предложений
-
-### Адаптивная сложность
-
-Бот автоматически:
-- Усложняет, если пользователь отвечает быстро
-- Упрощает при ошибках
-- Увеличивает частоту повторения сложных слов
-
-## 📊 Система прогресса
-
-- XP и уровни
-- Streak (серия дней)
-- Статистика по навыкам
-- Профиль ошибок
-- Динамический уровень (A0 → C1)
-
-## 🔧 Режимы обучения
-
-- 📚 **Урок** — новые слова
-- 🔁 **Повторение** — интервальное
-- 🎧 **Аудирование** — понимание на слух
-- 🎤 **Произношение** — shadowing
-- 💬 **Диалог** — AI-собеседник
-- ⚡ **Экспресс** — быстрая тренировка
-- 🧠 **Слабые слова** — проблемные места
-- 🔥 **Hard Mode** — сленг, идиомы
-- 🗣 **Real Life** — сценарии
-
-## 📝 Команды бота
-
-| Команда | Описание |
-|---------|----------|
-| `/start` | Начать обучение |
-| `/learn` | Учить новые слова |
-| `/review` | Повторить изученное |
-| `/practice` | Быстрая тренировка |
-| `/dialogue` | Поговорить на английском |
-| `/progress` | Статистика |
-| `/settings` | Настройки |
-| `/help` | Справка |
-
-## 🎯 Первые 30 дней
-
-**Дни 1-7:** Самые частотные слова + базовые конструкции  
-**Дни 8-14:** Бытовые ситуации + базовые времена  
-**Дни 15-21:** Активная речь + аудирование  
-**Дни 22-30:** Свободные диалоги + автоматизация  
-
-## 🛠️ Технологии
-
-- **Python 3.12+**
-- **aiogram 3.x** — Telegram Bot API
-- **SQLAlchemy 2.x** — ORM
-- **PostgreSQL** — база данных
-- **OpenAI API** — AI-собеседник (опционально)
-- **gTTS / Whisper** — TTS/STT
+# Остановить
+docker-compose down
+```
 
 ## 📈 Масштабирование
 
@@ -245,22 +278,35 @@ docker-compose down
 - Использовать webhook вместо polling
 - Настроить мониторинг (Sentry)
 - Добавить rate limiting
-- Настроить бэкапы БД
 
-## 🤝 Развитие проекта
+## 🔧 Разработка
 
-Планируемые функции:
-- [ ] AI-собеседник с памятью контекста
-- [ ] Распознавание произношения
-- [ ] Shadowing режим
-- [ ] Еженедельные тесты
-- [ ] Социальные функции (соревнования)
-- [ ] Мобильное приложение
+```bash
+# Запустить тесты
+pytest
 
-## 📄 Лицензия
+# Проверить типы
+mypy app/
+
+# Форматирование
+black app/
+```
+
+## 📝 Лицензия
 
 MIT
 
 ## 💡 Принцип
 
 > **НЕ УЧИТЬ АНГЛИЙСКИЙ КАК ШКОЛЬНЫЙ ПРЕДМЕТ. ФОРМИРОВАТЬ АВТОМАТИЧЕСКИЙ НАВЫК ПОНИМАНИЯ И РЕЧИ.**
+
+## 🆘 Поддержка
+
+- Groq API: https://console.groq.com/
+- edge-tts: https://github.com/rany2/edge-tts
+- Whisper: https://github.com/openai/whisper
+- aiogram: https://docs.aiogram.dev/
+
+---
+
+**Всё полностью бесплатно!** 🎉
