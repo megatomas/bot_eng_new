@@ -1,4 +1,23 @@
+# Core
 python-telegram-bot==21.6
-gTTS==2.5.4
-aiosqlite==0.20.0
+aiogram==3.13.1
+sqlalchemy==2.0.36
+alembic==1.14.0
+asyncpg==0.30.0
+pydantic==2.9.2
+pydantic-settings==2.6.1
+
+# AI
+openai==1.54.3
+
+# Speech
+gtts==2.5.4
+speechrecognition==3.11.0
+
+# Utils
 python-dotenv==1.0.1
+aiofiles==24.1.0
+
+# Dev
+pytest==8.3.3
+pytest-asyncio==0.24.0

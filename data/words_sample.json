@@ -1,0 +1,121 @@
+{
+  "words": [
+    {
+      "word": "run",
+      "translation": "бежать; работать; управлять",
+      "part_of_speech": "verb",
+      "frequency_rank": 150,
+      "level": "A2",
+      "pronunciation": "/rʌn/",
+      "examples": [
+        {"en": "I run every morning.", "ru": "Я бегаю каждое утро."},
+        {"en": "She runs a small business.", "ru": "Она управляет малым бизнесом."}
+      ],
+      "common_phrases": ["run out of", "run late", "run a program"],
+      "collocations": ["run a business", "run a marathon", "run fast"],
+      "synonyms": ["sprint", "jog", "dash"],
+      "antonyms": ["walk", "stop"],
+      "forms": ["run", "ran", "running"],
+      "tags": ["daily", "movement", "work"],
+      "category": "movement",
+      "importance": 9.4
+    },
+    {
+      "word": "go",
+      "translation": "идти; уходить; работать",
+      "part_of_speech": "verb",
+      "frequency_rank": 5,
+      "level": "A1",
+      "pronunciation": "/ɡoʊ/",
+      "examples": [
+        {"en": "I go to work by bus.", "ru": "Я езжу на работу на автобусе."},
+        {"en": "Let's go!", "ru": "Пойдём!"}
+      ],
+      "common_phrases": ["go ahead", "go on", "go away"],
+      "collocations": ["go home", "go to school", "go shopping"],
+      "synonyms": ["leave", "move", "travel"],
+      "forms": ["go", "went", "gone", "going"],
+      "tags": ["daily", "movement", "basic"],
+      "category": "movement",
+      "importance": 10.0
+    },
+    {
+      "word": "get",
+      "translation": "получать; становиться; добираться",
+      "part_of_speech": "verb",
+      "frequency_rank": 8,
+      "level": "A1",
+      "pronunciation": "/ɡet/",
+      "examples": [
+        {"en": "I got your message.", "ru": "Я получил твоё сообщение."},
+        {"en": "It's getting dark.", "ru": "Становится темно."}
+      ],
+      "common_phrases": ["get up", "get over", "get along"],
+      "collocations": ["get ready", "get married", "get a job"],
+      "synonyms": ["receive", "obtain", "become"],
+      "forms": ["get", "got", "got/gotten", "getting"],
+      "tags": ["daily", "basic", "versatile"],
+      "category": "general",
+      "importance": 10.0
+    },
+    {
+      "word": "gonna",
+      "translation": "собираюсь (разг. сокращ. от going to)",
+      "part_of_speech": "contraction",
+      "frequency_rank": 200,
+      "level": "A2",
+      "pronunciation": "/ˈɡɒnə/",
+      "examples": [
+        {"en": "I'm gonna sleep.", "ru": "Я собираюсь спать."},
+        {"en": "What are you gonna do?", "ru": "Что ты собираешься делать?"}
+      ],
+      "common_phrases": [],
+      "collocations": [],
+      "synonyms": ["going to"],
+      "forms": [],
+      "tags": ["slang", "contraction", "spoken"],
+      "category": "grammar",
+      "is_contraction": 1,
+      "importance": 8.5
+    },
+    {
+      "word": "break the ice",
+      "translation": "разрядить обстановку; начать разговор",
+      "part_of_speech": "idiom",
+      "frequency_rank": 3000,
+      "level": "B1",
+      "pronunciation": "/breɪk ðə aɪs/",
+      "examples": [
+        {"en": "He told a joke to break the ice.", "ru": "Он рассказал шутку, чтобы разрядить обстановку."}
+      ],
+      "common_phrases": [],
+      "collocations": [],
+      "synonyms": ["start a conversation"],
+      "forms": [],
+      "tags": ["idiom", "social", "conversation"],
+      "category": "idioms",
+      "is_idiom": 1,
+      "importance": 7.0
+    },
+    {
+      "word": "run out of",
+      "translation": "заканчиваться (о запасах)",
+      "part_of_speech": "phrasal verb",
+      "frequency_rank": 800,
+      "level": "B1",
+      "pronunciation": "/rʌn aʊt əv/",
+      "examples": [
+        {"en": "We ran out of milk.", "ru": "У нас закончилось молоко."},
+        {"en": "I'm running out of time.", "ru": "У меня заканчивается время."}
+      ],
+      "common_phrases": [],
+      "collocations": ["run out of time", "run out of money", "run out of patience"],
+      "synonyms": ["exhaust", "deplete"],
+      "forms": ["run out of", "ran out of", "run out of"],
+      "tags": ["phrasal", "daily"],
+      "category": "phrasal_verbs",
+      "is_phrasal_verb": 1,
+      "importance": 8.5
+    }
+  ]
+}
