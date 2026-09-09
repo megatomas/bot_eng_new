@@ -1,97 +1,144 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>EnglishBot - Учим английский быстро</title>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Bot — Установка</title>
     <style>
-      /* 内联样式确保主题色立即生效，避免闪烁 */
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        height: 100%;
-      }
-      html.light,
-      html.light body {
-        background-color: #ffffff !important;
-        color: #000000;
-      }
-      html.dark,
-      html.dark body {
-        background-color: #1a1a1a !important;
-        color: #ffffff;
-      }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; padding: 20px; line-height: 1.6; }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { font-size: 2em; margin-bottom: 10px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        h2 { color: #60a5fa; margin: 30px 0 15px; font-size: 1.4em; }
+        h3 { color: #a78bfa; margin: 20px 0 10px; }
+        .step { background: #1e293b; border-radius: 12px; padding: 20px; margin: 15px 0; border: 1px solid #334155; }
+        .step-number { display: inline-block; background: #3b82f6; color: white; width: 30px; height: 30px; border-radius: 50%; text-align: center; line-height: 30px; font-weight: bold; margin-right: 10px; }
+        code { background: #0f172a; padding: 2px 8px; border-radius: 4px; font-family: 'Consolas', monospace; color: #34d399; }
+        pre { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 15px; overflow-x: auto; margin: 10px 0; position: relative; }
+        pre code { background: none; padding: 0; color: #e2e8f0; }
+        .copy-btn { position: absolute; top: 8px; right: 8px; background: #3b82f6; color: white; border: none; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+        .copy-btn:hover { background: #2563eb; }
+        .copy-btn.copied { background: #22c55e; }
+        .warning { background: #422006; border: 1px solid #92400e; border-radius: 8px; padding: 15px; margin: 15px 0; }
+        .warning::before { content: "⚠️ "; }
+        .success { background: #052e16; border: 1px solid #166534; border-radius: 8px; padding: 15px; margin: 15px 0; }
+        .success::before { content: "✅ "; }
+        .file-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; margin: 15px 0; }
+        .file-item { background: #1e293b; padding: 10px 15px; border-radius: 8px; border: 1px solid #334155; font-family: monospace; font-size: 13px; }
+        .file-item.new { border-color: #22c55e; }
+        .file-item.new::before { content: "🆕 "; }
+        .highlight { color: #fbbf24; font-weight: bold; }
     </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🇬🇧 English Learning Bot — Установка</h1>
+        <p>Пошаговая инструкция по переносу файлов на компьютер через GitHub</p>
+
+        <div class="warning">
+            <strong>Важно:</strong> Файлы, созданные в этом чате, находятся в веб-среде. Чтобы они попали на твой компьютер, нужно скопировать скрипт <code>setup_all.py</code> (Шаг 1) и запустить его на компьютере.
+        </div>
+
+        <h2>📋 Шаг 1: Скопируй скрипт установки</h2>
+        <div class="step">
+            <p>Скопируй весь код ниже → Открой PyCharm → Создай файл <code>setup_all.py</code> в корне проекта → Вставь код → Сохрани</p>
+            <pre><code id="setup-script">Скрипт будет ниже — прокрути вниз 👇</code></pre>
+        </div>
+
+        <h2>🚀 Шаг 2: Запусти скрипт</h2>
+        <div class="step">
+            <p>Открой терминал в PyCharm (<span class="highlight">Alt + F12</span>) и выполни:</p>
+            <pre><code>python setup_all.py</code><button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button></pre>
+            <p>Скрипт создаст ВСЕ необходимые файлы автоматически!</p>
+        </div>
+
+        <h2>🔑 Шаг 3: Настрой .env</h2>
+        <div class="step">
+            <p>Открой файл <code>.env</code> и заполни:</p>
+            <pre><code># 1. Токен бота (от @BotFather)
+BOT_TOKEN=твой_токен_здесь
+
+# 2. Groq API ключ (бесплатно с https://console.groq.com/)
+GROQ_API_KEY=gsk_твой_ключ_здесь</code><button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button></pre>
+        </div>
+
+        <h2>📦 Шаг 4: Установи зависимости</h2>
+        <div class="step">
+            <pre><code>pip install -r requirements.txt</code><button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button></pre>
+        </div>
+
+        <h2>🗄️ Шаг 5: Запусти PostgreSQL</h2>
+        <div class="step">
+            <pre><code>docker-compose up -d db</code><button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button></pre>
+            <p>Или используй локальный PostgreSQL.</p>
+        </div>
+
+        <h2>▶️ Шаг 6: Запусти бота</h2>
+        <div class="step">
+            <pre><code>python -m app.main</code><button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button></pre>
+        </div>
+
+        <div class="success">
+            <strong>Готово!</strong> Открой бота в Telegram → <code>/start</code>
+        </div>
+
+        <h2>📁 Какие файлы будут созданы</h2>
+        <div class="file-list">
+            <div class="file-item new">app/ai/providers.py</div>
+            <div class="file-item new">app/speech/providers.py</div>
+            <div class="file-item new">app/telegram/handlers/review.py</div>
+            <div class="file-item new">app/telegram/handlers/dialogue.py</div>
+            <div class="file-item new">app/telegram/handlers/progress.py</div>
+            <div class="file-item new">scripts/generate_dictionary.py</div>
+            <div class="file-item">app/config.py (обновлён)</div>
+            <div class="file-item">app/main.py (обновлён)</div>
+            <div class="file-item">app/telegram/bot.py (обновлён)</div>
+            <div class="file-item">requirements.txt (обновлён)</div>
+            <div class="file-item">.env (обновлён)</div>
+            <div class="file-item">docker-compose.yml</div>
+        </div>
+
+        <h2>🔑 Где получить бесплатные ключи</h2>
+        <div class="step">
+            <h3>Groq API (AI-собеседник)</h3>
+            <p>1. Зайди на <a href="https://console.groq.com/" style="color:#60a5fa">https://console.groq.com/</a></p>
+            <p>2. Войди через Google</p>
+            <p>3. "API Keys" → "Create API Key"</p>
+            <p>4. Скопируй ключ (начинается с <code>gsk_...</code>)</p>
+            <p style="margin-top:10px;color:#22c55e">✅ Бесплатно: 14400 запросов/день</p>
+        </div>
+
+        <h2>❓ Решение проблем</h2>
+        <div class="step">
+            <h3>Ошибка "ModuleNotFoundError"</h3>
+            <pre><code>pip install -r requirements.txt</code></pre>
+            
+            <h3>Ошибка подключения к БД</h3>
+            <pre><code># Проверь что PostgreSQL запущен
+docker ps
+
+# Или проверь пароль в .env
+DATABASE_URL=postgresql+asyncpg://postgres:ТВОЙ_ПАРОЛЬ@localhost:5432/english_bot</code></pre>
+
+            <h3>Бот не отвечает</h3>
+            <pre><code># Перезапусти
+Ctrl+C
+python -m app.main</code></pre>
+        </div>
+    </div>
+
     <script>
-      // 在 React 加载前立即设置主题，避免闪烁
-      (function () {
-        const isInIframe = window.self !== window.top;
-
-        function applyThemeToDOM(theme) {
-          document.documentElement.classList.remove("light", "dark");
-          document.documentElement.classList.add(theme);
-          document.documentElement.setAttribute("data-theme", theme);
+        function copyCode(btn) {
+            const code = btn.parentElement.querySelector('code').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                btn.textContent = '✅ Скопировано!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = '📋 Копировать';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
         }
-
-        if (isInIframe) {
-          // 监听父窗口主动推送的主题消息
-          window.addEventListener("message", function (event) {
-            if (event.data && typeof event.data.theme === "string") {
-              const theme = event.data.theme;
-              if (theme === "light" || theme === "dark") {
-                applyThemeToDOM(theme);
-              }
-            }
-          });
-        } else {
-          // 非 iframe 环境，使用默认 light 主题
-          applyThemeToDOM("light");
-        }
-      })();
     </script>
-      <script>
-      (function () {
-        if (window.self === window.top) return;
-        var reported = {};
-        window.addEventListener("error", function (event) {
-          // 资源加载失败的 error 事件没有 message，此处仅上报 JS 运行时错误
-          if (!event || !event.message) return;
-          var key =
-            event.message + "|" + (event.filename || "") + "|" + (event.lineno || 0);
-          if (reported[key]) return; // 相同错误只上报一次，避免渲染循环刷屏
-          reported[key] = true;
-          try {
-            window.parent.postMessage(
-              {
-                type: "sandbox-runtime-error",
-                payload: {
-                  message: String(event.message).slice(0, 500),
-                  filename: event.filename || "",
-                  lineno: event.lineno || 0,
-                  colno: event.colno || 0,
-                  stack:
-                    event.error && event.error.stack
-                      ? String(event.error.stack).slice(0, 2000)
-                      : ""
-                }
-              },
-              "*"
-            );
-          } catch (e) {
-            /* 上报失败不影响页面运行 */
-          }
-        });
-      })();
-    </script>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+</body>
 </html>
