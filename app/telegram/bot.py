@@ -4,7 +4,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 
 from app.config import settings
-from app.telegram.handlers import start, learn
+from app.telegram.handlers import start, learn, review, dialogue, progress
 
 
 def create_bot() -> Bot:
@@ -19,5 +19,8 @@ def create_dispatcher() -> Dispatcher:
     # Register routers
     dp.include_router(start.router)
     dp.include_router(learn.router)
+    dp.include_router(review.router)
+    dp.include_router(dialogue.router)
+    dp.include_router(progress.router)
     
     return dp

@@ -1,5 +1,4 @@
 # Core
-python-telegram-bot==21.6
 aiogram==3.13.1
 sqlalchemy==2.0.36
 alembic==1.14.0
@@ -7,12 +6,13 @@ asyncpg==0.30.0
 pydantic==2.9.2
 pydantic-settings==2.6.1
 
-# AI
-openai==1.54.3
+# AI (бесплатные провайдеры)
+aiohttp==3.10.10  # Для Groq/Gemini API
 
-# Speech
-gtts==2.5.4
-speechrecognition==3.11.0
+# Speech — БЕСПЛАТНЫЕ решения
+edge-tts==6.1.12  # Microsoft Edge TTS (лучший бесплатный)
+gtts==2.5.4       # Google TTS (альтернатива)
+openai-whisper==20240930  # OpenAI Whisper STT (локальный)
 
 # Utils
 python-dotenv==1.0.1
