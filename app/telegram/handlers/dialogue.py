@@ -4,6 +4,7 @@ from aiogram import Router, F
 from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
+from aiogram.exceptions import TelegramBadRequest
 
 from app.database.base import async_session
 from app.repositories.user_repo import UserRepository
@@ -62,11 +63,15 @@ async def start_dialogue(callback: CallbackQuery, state: FSMContext):
             "<i>(AI не настроен, используется базовый режим)</i>"
         )
     
-    await callback.message.edit_text(
-        text,
-        reply_markup=get_main_menu_keyboard(),
-        parse_mode="HTML",
-    )
+    try:
+        await callback.message.edit_text(
+            text,
+            reply_markup=get_main_menu_keyboard(),
+            parse_mode="HTML",
+        )
+    except TelegramBadRequest:
+        # Если сообщение не изменилось, игнорируем ошибку
+        pass
     
     await state.set_state(DialogueStates.chatting)
     await callback.answer()
