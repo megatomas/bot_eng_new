@@ -41,7 +41,7 @@ async def on_shutdown(bot: Bot):
 
 async def main():
     """Main entry point."""
-    logger.info("Starting English Learning Bot...")
+    logger.info("Starting English Learning Bot v1.0...")
     
     bot = create_bot()
     dp = create_dispatcher()
