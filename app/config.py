@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()  # Загружаем переменные из .env файла
+
 from pydantic_settings import BaseSettings
 from pydantic import Field
 
