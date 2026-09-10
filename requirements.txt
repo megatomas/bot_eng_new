@@ -16,11 +16,12 @@ aiohttp==3.10.10  # Для Groq/Gemini API
 # Speech - БЕСПЛАТНЫЕ решения
 edge-tts==6.1.12  # Microsoft Edge TTS (ЛУЧШИЙ бесплатный)
 gtts==2.5.4       # Google TTS (альтернатива)
-openai-whisper==20240930  # OpenAI Whisper STT (локальный, бесплатный)
+# openai-whisper - опционально, установи позже: pip install openai-whisper
 
 # Utils
 python-dotenv==1.0.1
 aiofiles==24.1.0
+setuptools>=68.0.0  # Нужен для некоторых пакетов
 
 # Dev (опционально)
 pytest==8.3.3
